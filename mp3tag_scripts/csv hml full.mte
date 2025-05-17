@@ -1,0 +1,7 @@
+$filename(csv,utf-16)
+Title;Artist;Album;Year;Genre;Comment;ISRC;Language;AudioLength;FileSize;Crc;FileCreateDate;LastModified;RelativePath;Filename;Extension;Directory;ParentDirectory;Keywords;Mood;Usage;Story;Song;ModeStereo;BPM;Codec;Bitrate;Samplerate;VBR;TagType;CoverDescription;CoverSize;CoverType;CoverMime;CoverHeight;CoverWidth;Lyrics;SrcFix;PlayCounter;Note
+$loop(%_filename_ext%)
+%title%;%artist%;%album%;%year%;%genre%;$replace(%comment%,$char(13),#,$char(10),#,$char(59), );%isrc%;%language%;%_length_seconds%;%_file_size%;%_crc%;%_file_create_date%;%_file_mod_date%;%_folderpath_rel%;%_filename_ext%;%_extension%;%_directory%;%_parent_directory%;%keywords%;%mood%;%usage%;%story%;%song%;%_mode%;%bpm%;%_codec%;%_bitrate%;%_samplerate%;%_vbr%;%_tag%;%_cover_description%;%_cover_size%;%_cover_type%;%_cover_mimetype%;%_cover_height%;%_cover_width%;$replace(%unsyncedlyrics%,$char(13),#,$char(10),#,$char(59), );%srcfix%;%pcnt%,%popularimeter%
+$loopend()
+
+build on %_date% with %_app% - the universal Tag editor - http://www.mp3tag.de/en/

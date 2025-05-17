@@ -1,0 +1,2 @@
+$filename(genre_export.txt,utf-8)
+%_path%;%genre%

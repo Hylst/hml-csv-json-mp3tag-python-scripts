@@ -1,0 +1,7 @@
+$filename(csv,utf-16)
+Title;Artist;Album;Year;Genre;Comment;Filename;Keywords;Mood;Usage;Story;Song;Lyrics;Note
+$loop(%_filename_ext%)
+%title%;%artist%;%album%;%year%;%genre%;$replace(%comment%,$char(13),#,$char(10),#,$char(59), );%_filename_ext%;%keywords%;%mood%;%usage%;%story%;%song%;$replace(%unsyncedlyrics%,$char(13),#,$char(10),#,$char(59), );%popularimeter%
+$loopend()
+
+build on %_date% with %_app% - the universal Tag editor - http://www.mp3tag.de/en/

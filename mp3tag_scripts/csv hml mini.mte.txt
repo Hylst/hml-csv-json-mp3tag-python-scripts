@@ -1,0 +1,5 @@
+$filename(csv,utf-16)
+Title;Album;Genre;Comment;Keywords;Mood;Usage;Song;Note;Language;AudioLength;Filename;UnSyncLyrics;PlayCounter
+$loop(%_filename_ext%)
+%title%;%album%;%genre%;$replace(%comment%,$char(13),#,$char(10),#,$char(59), );%keywords%;%mood%;%usage%;%song%;%popularimeter%;%language%;%_length_seconds%;%_filename_ext%;$replace(%unsyncedlyrics%,$char(13),#,$char(10),#,$char(59), );%pcnt%
+$loopend()
