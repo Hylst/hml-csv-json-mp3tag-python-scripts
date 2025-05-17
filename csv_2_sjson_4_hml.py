@@ -1,5 +1,4 @@
 import sys
-import csv
 import json
 import os
 import hashlib
@@ -20,77 +19,81 @@ def generate_id(filename):
 def parse_list(value):
     return [item.strip() for item in value.split(',') if item.strip()]
 
+def format_json_lists(json_str):
+    return re.sub(
+        r'(\"(\w+)\": \[\n\s+)((".*?")(,\n\s+".*?")*)(\n\s+\])',
+        lambda m: f'"{m.group(2)}": [{", ".join(re.findall(r'".*?"', m.group(3)))}]',
+        json_str
+    )
+
 def main(type_music=None, csv_path=None):
-    # Configuration via arguments ou prompts
     if not type_music:
-        type_music = input("Entrez le type de musique (ex: soundchip): ").strip()
+        type_music = input("Type de musique (ex: soundchip): ").strip()
     if not csv_path:
-        csv_path = input("Entrez le chemin du fichier CSV: ").strip()
+        csv_path = input("Chemin du CSV: ").strip()
     
     json_path = os.path.splitext(csv_path)[0] + ".json"
 
-    # Lecture et traitement du CSV
     with open(csv_path, 'r', encoding='utf-16') as f:
         raw_content = f.read().lstrip('\ufeff')
         lines = [line.strip() for line in raw_content.split('\n') if line.strip()]
     
-    headers = [h.strip().lower() for h in lines[0].split(';')]
+    # Vérification et nettoyage des en-têtes
+    headers = [h.strip().lower().replace('\ufeff', '') for h in lines[0].split(';')]
     required = {'title', 'artist', 'album', 'year', 'genre', 'comment', 
                'filename', 'keywords', 'mood', 'usage', 'story', 'song', 
                'lyrics', 'note'}
     
     if missing := required - set(headers):
         print(f"ERREUR: Colonnes manquantes: {', '.join(sorted(missing))}")
+        print(f"En-têtes détectés: {headers}")
         return
 
     entries = []
     for line in lines[1:]:
         values = line.split(';')
         if len(values) != len(headers):
+            print(f"Ligne ignorée (nombre de colonnes incorrect): {line}")
             continue
             
         row = dict(zip(headers, values))
-        filename = row['filename']
-        
-        entry = {
-            "id": generate_id(filename),
-            "title": row.get('title', ''),
-            "artist": row.get('artist', ''),
-            "album": row.get('album', ''),
-            "genre": parse_list(row.get('genre', '')),
-            "coverArt": f"/music/{type_music}/{os.path.splitext(filename)[0]}.jpg",
-            "audioSrc": f"/music/{type_music}/{filename}",
-            "fileName": filename,
-            "keywords": parse_list(row.get('keywords', '')),
-            "year": row.get('year', ''),
-            "comment": row.get('comment', ''),
-            "lyrics": row.get('lyrics', ''),
-            "mood": parse_list(row.get('mood', '')),
-            "usage": parse_list(row.get('usage', '')),
-            "story": row.get('story', ''),
-            "song": int(row.get('song', 0)) if row.get('song', '').strip() else 0,
-            "note": int(row.get('note', 0)) if row.get('note', '').strip() else 0
-        }
-        entries.append(entry)
+        try:
+            filename = row['filename']
+            entries.append({
+                "id": generate_id(filename),
+                "title": row['title'],
+                "artist": row['artist'],
+                "album": row['album'],
+                "genre": parse_list(row['genre']),
+                "coverArt": f"/music/{type_music}/{os.path.splitext(filename)[0]}.jpg",
+                "audioSrc": f"/music/{type_music}/{filename}",
+                "fileName": filename,
+                "keywords": parse_list(row['keywords']),
+                "year": row['year'],
+                "comment": row['comment'],
+                "lyrics": row.get('lyrics', ''),
+                "mood": parse_list(row['mood']),
+                "usage": parse_list(row['usage']),
+                "story": row.get('story', ''),
+                "song": int(row['song']) if row['song'].strip() else 0,
+                "note": int(row['note']) if row['note'].strip() else 0
+            })
+        except KeyError as e:
+            print(f"Erreur dans la ligne : {line}")
+            print(f"Clé manquante: {e}")
+            continue
 
-    # Écriture avec formatage personnalisé
+    json_str = json.dumps({type_music: entries}, ensure_ascii=False, indent=2)
+    json_str = format_json_lists(json_str)
+
     with open(json_path, 'w', encoding='utf-8') as f:
-        json_str = json.dumps(
-            {type_music: entries},
-            ensure_ascii=False,
-            indent=2,
-            separators=(',', ': '),
-            default=lambda o: o.__dict__
-        )
-        # Optimisation du formatage des listes
-        json_str = re.sub(r'(\[\n\s+)(".+?")(\n\s+\])', r'\1\2\3', json_str)
         f.write(json_str)
 
-    print(f"Conversion réussie! {len(entries)} titres exportés dans {json_path}")
+    print(f"Succès: {len(entries)} titres convertis -> {json_path}")
 
 if __name__ == "__main__":
     if len(sys.argv) == 3:
         main(sys.argv[1], sys.argv[2])
     else:
-        print("Utilisation: python script.py [type_music] [fichier.csv]")
+        print("Usage: python script.py <type_music> <fichier.csv>")
         main()
